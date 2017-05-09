@@ -12,7 +12,6 @@ Use the '-h' to get more information about command line usage.
 '''
 # Import packages
 import os
-import pdb
 
 # Constants
 SESSIONS = ['NFB3', 'DS2', 'NFB2', 'NFBR2', 'CLG2', 'CLGR', 'CLG4', 'CLG2R', 'CLG3', 'NFBR2A', 'CLG4R', 'NFB2R', 'DSA', 'CLGA', 'NFBA', 'CLG2A', 'CLG5', 'CLG', 'NFBAR']
@@ -209,8 +208,6 @@ def collect_and_download(out_dir,
         # Save out revised session tsvs to output directory; if already exists, open it and merge with the new one.
         for session_key in session_keylist:
             participant = session_key.split('/')[-2]
-            if participant == 'sub-A00039277':
-               pdb.set_trace()
             sessions_obj = s3_client.get_object(Bucket=s3_bucket_name, Key=session_key )
             sessions_df = pandas.read_csv(sessions_obj['Body'], delimiter='\t', na_values=['n/a'])
             # Drop all sessions not in specified.

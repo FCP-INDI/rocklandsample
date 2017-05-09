@@ -12,6 +12,7 @@ Use the '-h' to get more information about command line usage.
 '''
 # Import packages
 import os
+import pdb
 
 # Constants
 SESSIONS = ['NFB3', 'DS2', 'NFB2', 'NFBR2', 'CLG2', 'CLGR', 'CLG4', 'CLG2R', 'CLG3', 'NFBR2A', 'CLG4R', 'NFB2R', 'DSA', 'CLGA', 'NFBA', 'CLG2A', 'CLG5', 'CLG', 'NFBAR']
@@ -153,6 +154,12 @@ def collect_and_download(out_dir,
     s3_keylist.append('/'.join([s3_prefix, 'README']))
     s3_keylist.append('/'.join([s3_prefix, 'dataset_description.json']))
 
+    # Get a list of participants who meet filter criteria
+    participants_match = sorted(list(set([s for s in participants_filt for c in s3_keylist if s in c])))
+    participants_match_ids = [s[4:-1] for s in participants_match]
+    # Use this list to filter the participants DF
+    participants_df = participants_df[participants_df['participant_id'].isin(participants_match_ids)]
+
     # And download the items
     total_num_files = len(s3_keylist)
     files_downloaded = len(s3_keylist)
@@ -194,18 +201,21 @@ def collect_and_download(out_dir,
             participants_df = participants_df.append(old_participants_df, ignore_index=True)
             participants_df.drop_duplicates(inplace=True)
             os.remove(os.path.join(out_dir, 'participants.tsv'))
-        participants_df.to_csv(os.path.join(out_dir, 'participants.tsv'), sep="\t", na_rep="n/a", index=False)
+        participants_df.to_csv(os.path.join(out_dir, 'participants.tsv'), sep="\t", na_rep="n/a", index=False) 
 
         # Separate list for sessions TSVs.
         session_keylist = [key.key for key in s3_keys if 'sessions.tsv' in key.key]
-        session_keylist = [key for key in session_keylist for p in participants_filt if p in key]
+        session_keylist = [key for key in session_keylist for p in participants_match if p in key]
         # Save out revised session tsvs to output directory; if already exists, open it and merge with the new one.
         for session_key in session_keylist:
             participant = session_key.split('/')[-2]
+            if participant == 'sub-A00039277':
+               pdb.set_trace()
             sessions_obj = s3_client.get_object(Bucket=s3_bucket_name, Key=session_key )
             sessions_df = pandas.read_csv(sessions_obj['Body'], delimiter='\t', na_values=['n/a'])
             # Drop all sessions not in specified.
             sessions_df = sessions_df[sessions_df['session_id'].isin(sessions_filt)]
+
             # Save out revised sessions tsv to output directory, if a sessions tsv already exists, open it and append it to the new one.
             if os.path.isfile(os.path.join(out_dir, participant, participant+'_sessions.tsv')):
                 old_sessions_df = pandas.read_csv(os.path.join(out_dir, participant, participant+'_sessions.tsv'), delimiter='\t', na_values=['n/a', 'N/A'])

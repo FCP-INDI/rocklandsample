@@ -12,6 +12,7 @@ Use the '-h' to get more information about command line usage.
 '''
 # Import packages
 import os
+import pdb
 
 # Constants
 SESSIONS = ['NFB3', 'DS2', 'NFB2', 'NFBR2', 'CLG2', 'CLGR', 'CLG4', 'CLG2R', 'CLG3', 'NFBR2A', 'CLG4R', 'NFB2R', 'DSA', 'CLGA', 'NFBA', 'CLG2A', 'CLG5', 'CLG', 'NFBAR']
@@ -205,6 +206,9 @@ def collect_and_download(out_dir,
         # Separate list for sessions TSVs.
         session_keylist = [key.key for key in s3_keys if 'sessions.tsv' in key.key]
         session_keylist = [key for key in session_keylist for p in participants_match if p in key]
+        # Strip the trailing slash from sessions_filt (otherwise all sessions will be dropped).
+        sessions_filt = [i.rstrip('/') for i in sessions_filt]
+
         # Save out revised session tsvs to output directory; if already exists, open it and merge with the new one.
         for session_key in session_keylist:
             participant = session_key.split('/')[-2]
@@ -332,6 +336,8 @@ if __name__ == '__main__':
     if args.dryrun:
         kwargs['dryrun'] = args.dryrun
         print 'Running download as a dry run.'
+
+    pdb.set_trace()
 
     # Call the collect and download routine
     collect_and_download(out_dir, **kwargs)

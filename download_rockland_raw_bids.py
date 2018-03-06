@@ -12,7 +12,7 @@ Use the '-h' to get more information about command line usage.
 '''
 # Import packages
 import os
-import pdb
+# import pdb
 
 # Constants
 SESSIONS = ['NFB3', 'DS2', 'NFB2', 'NFBR2', 'CLG2', 'CLGR', 'CLG4', 'CLG2R', 'CLG3', 'NFBR2A', 'CLG4R', 'NFB2R', 'DSA', 'CLGA', 'NFBA', 'CLG2A', 'CLG5', 'CLG', 'NFBAR']
@@ -217,13 +217,17 @@ def collect_and_download(out_dir,
             # Drop all sessions not in specified.
             sessions_df = sessions_df[sessions_df['session_id'].isin(sessions_filt)]
 
-            # Save out revised sessions tsv to output directory, if a sessions tsv already exists, open it and append it to the new one.
-            if os.path.isfile(os.path.join(out_dir, participant, participant+'_sessions.tsv')):
-                old_sessions_df = pandas.read_csv(os.path.join(out_dir, participant, participant+'_sessions.tsv'), delimiter='\t', na_values=['n/a', 'N/A'])
-                sessions_df = sessions_df.append(old_sessions_df, ignore_index=True)
-                sessions_df.drop_duplicates(inplace=True)
-                os.remove(os.path.join(out_dir, participant, participant+'_sessions.tsv'))
-            sessions_df.to_csv(os.path.join(out_dir, participant, participant+'_sessions.tsv'), sep="\t", na_rep="n/a", index=False)
+            try:
+                # Save out revised sessions tsv to output directory, if a sessions tsv already exists, open it and append it to the new one.
+                if os.path.isfile(os.path.join(out_dir, participant, participant+'_sessions.tsv')):
+                    old_sessions_df = pandas.read_csv(os.path.join(out_dir, participant, participant+'_sessions.tsv'), delimiter='\t', na_values=['n/a', 'N/A'])
+                    sessions_df = sessions_df.append(old_sessions_df, ignore_index=True)
+                    sessions_df.drop_duplicates(inplace=True)
+                    os.remove(os.path.join(out_dir, participant, participant+'_sessions.tsv'))
+                sessions_df.to_csv(os.path.join(out_dir, participant, participant+'_sessions.tsv'), sep="\t", na_rep="n/a", index=False)
+            except:
+                print "Error trying to save session TSV for subject "+participant
+                pass
     print 'Done!'
 
 # Make module executable
@@ -337,7 +341,7 @@ if __name__ == '__main__':
         kwargs['dryrun'] = args.dryrun
         print 'Running download as a dry run.'
 
-    pdb.set_trace()
+   # pdb.set_trace()
 
     # Call the collect and download routine
     collect_and_download(out_dir, **kwargs)
